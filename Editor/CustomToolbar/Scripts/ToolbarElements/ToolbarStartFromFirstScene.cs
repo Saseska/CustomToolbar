@@ -19,11 +19,8 @@ namespace UnityToolbarExtender
 		{
 			EditorApplication.playModeStateChanged += LogPlayModeState;
 
-			startFromFirstSceneBtn =
-				new GUIContent(
-					(Texture2D)AssetDatabase.LoadAssetAtPath(
-						$"{GetPackageRootPath}/Editor/CustomToolbar/Icons/LookDevPlayFirst@2x.png", typeof(Texture2D)),
-					"Play from " + Path.GetFileName(EditorBuildSettings.scenes[0].path));
+			startFromFirstSceneBtn =EditorGUIUtility.IconContent("PlayButton@2x");
+			startFromFirstSceneBtn.tooltip = "Play from " + Path.GetFileName(EditorBuildSettings.scenes[0].path);
 		}
 
 		protected override void OnDrawInList(Rect position)

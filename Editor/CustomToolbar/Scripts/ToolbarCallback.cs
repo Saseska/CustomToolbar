@@ -69,20 +69,20 @@ namespace UnityToolbarExtender
 				{
 					var toolbarZone = mRoot.Q(root);
 					
-
-					var parent = new VisualElement()
+					var container = new IMGUIContainer()
 					{
-						style = {
+						style =
+						{
 							flexGrow = 1,
 							flexDirection = FlexDirection.Row,
 						}
 					};
-					var container = new IMGUIContainer();
+					
 					container.onGUIHandler += () => { 
 						cb?.Invoke();
 					}; 
-					parent.Add(container);
-					toolbarZone.Add(parent);
+					
+					toolbarZone.Add(container);
 				}
 #else
 #if UNITY_2020_1_OR_NEWER

@@ -16,11 +16,8 @@ namespace UnityToolbarExtender
 
 		public override void Init()
 		{
-			reloadSceneBtn =
-				new GUIContent(
-					(Texture2D)AssetDatabase.LoadAssetAtPath(
-						$"{GetPackageRootPath}/Editor/CustomToolbar/Icons/LookDevResetEnv@2x.png", typeof(Texture2D)),
-					"Reload scene");
+			reloadSceneBtn = EditorGUIUtility.IconContent("d_RotateTool@2x");
+			reloadSceneBtn.tooltip= "Reload scene";
 		}
 
 		protected override void OnDrawInList(Rect position)

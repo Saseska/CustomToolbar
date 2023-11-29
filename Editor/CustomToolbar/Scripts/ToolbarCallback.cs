@@ -45,39 +45,45 @@ namespace UnityToolbarExtender
 		private static void OnUpdate()
 		{
 			// Relying on the fact that toolbar is ScriptableObject and gets deleted when layout changes
-			if (m_currentToolbar == null)
+			if (m_currentToolbar != null)
 			{
-				// Find toolbar
-				var toolbars = Resources.FindObjectsOfTypeAll(m_toolbarType);
-				m_currentToolbar = toolbars.Length > 0 ? (ScriptableObject) toolbars[0] : null;
+				return;
+			}
 
-				if (m_currentToolbar != null)
-				{ 
+			// Find toolbar
+			var toolbars = Resources.FindObjectsOfTypeAll(m_toolbarType);
+			m_currentToolbar = toolbars.Length > 0 ? (ScriptableObject) toolbars[0] : null;
+
+			if (m_currentToolbar != null)
+			{ 
 #if UNITY_2021_1_OR_NEWER
-					var root = m_currentToolbar.GetType().GetField("m_Root", BindingFlags.NonPublic | BindingFlags.Instance);
-					var rawRoot = root.GetValue(m_currentToolbar);
-					var mRoot = rawRoot as VisualElement;
-					RegisterCallback("ToolbarZoneLeftAlign", OnToolbarGUILeft);
-					RegisterCallback("ToolbarZoneRightAlign", OnToolbarGUIRight);
+				var root = m_currentToolbar.GetType().GetField("m_Root", BindingFlags.NonPublic | BindingFlags.Instance);
+				var rawRoot = root.GetValue(m_currentToolbar);
+				var mRoot = rawRoot as VisualElement;
+				RegisterCallback("ToolbarZoneLeftAlign", OnToolbarGUILeft);
+				RegisterCallback("ToolbarZoneRightAlign", OnToolbarGUIRight);
+				
+				mRoot.RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanelEvent);
 
-					void RegisterCallback(string root, Action cb) 
+				void RegisterCallback(string root, Action cb) 
+				{
+					var toolbarZone = mRoot.Q(root);
+					
+
+					var parent = new VisualElement()
 					{
-						var toolbarZone = mRoot.Q(root);
-
-						var parent = new VisualElement()
-						{
-							style = {
-								flexGrow = 1,
-								flexDirection = FlexDirection.Row,
-							}
-						};
-						var container = new IMGUIContainer();
-						container.onGUIHandler += () => { 
-							cb?.Invoke();
-						}; 
-						parent.Add(container);
-						toolbarZone.Add(parent);
-					}
+						style = {
+							flexGrow = 1,
+							flexDirection = FlexDirection.Row,
+						}
+					};
+					var container = new IMGUIContainer();
+					container.onGUIHandler += () => { 
+						cb?.Invoke();
+					}; 
+					parent.Add(container);
+					toolbarZone.Add(parent);
+				}
 #else
 #if UNITY_2020_1_OR_NEWER
 					var windowBackend = m_windowBackend.GetValue(m_currentToolbar);
@@ -97,8 +103,12 @@ namespace UnityToolbarExtender
 					handler += OnGUI;
 					m_imguiContainerOnGui.SetValue(container, handler);
 #endif
-				}
 			}
+		}
+
+		private static void OnDetachFromPanelEvent(DetachFromPanelEvent evt)
+		{
+			m_currentToolbar = null;
 		}
 
 		static void OnGUI()

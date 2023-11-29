@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace UnityToolbarExtender
 {
-    static class ToolbarStyles
+    public static class ToolbarStyles
     {
         public static readonly GUIStyle commandButtonStyle;
 

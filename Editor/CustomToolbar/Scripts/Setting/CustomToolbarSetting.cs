@@ -1,48 +1,27 @@
-﻿using System.IO;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace UnityToolbarExtender
 {
 #if UNITY_2020_3_OR_NEWER
-    [FilePath("ProjectSettings/CustomToolbarSetting.asset", FilePathAttribute.Location.ProjectFolder)]
-    internal class CustomToolbarSetting : ScriptableSingleton<CustomToolbarSetting> {
-        [SerializeReference] List<BaseToolbarElement> _elements = new() {
-            new ToolbarEnterPlayMode(),
-            new ToolbarSceneSelection(),
-            new ToolbarSpace(),
+	[FilePath("UserSettings/CustomToolbarSetting.asset", FilePathAttribute.Location.PreferencesFolder)]
+	internal class CustomToolbarSetting : ScriptableSingleton<CustomToolbarSetting>
+	{
+		[SerializeReference] List<BaseToolbarElement> _elements = new();
 
-            new ToolbarSavingPrefs(),
-            new ToolbarClearPrefs(),
-            new ToolbarSpace(),
+		internal List<BaseToolbarElement> elements => _elements;
 
-            new ToolbarReloadScene(),
-            new ToolbarStartFromFirstScene(),
-            new ToolbarSpace(),
+		internal static SerializedObject GetSerializedSetting()
+		{
+			return new SerializedObject(instance);
+		}
 
-            new ToolbarSides(),
-
-            new ToolbarTimeslider(),
-            new ToolbarFPSSlider(),
-            new ToolbarSpace(),
-
-            new ToolbarRecompile(),
-            new ToolbarReserializeSelected(),
-            new ToolbarReserializeAll(),
-        };
-
-        internal List<BaseToolbarElement> elements => _elements;
-
-        internal static SerializedObject GetSerializedSetting() {
-            return new SerializedObject(instance);
-        }
-
-        internal void Save() {
-            Save(true);
-        }
-    }
+		internal void Save()
+		{
+			Save(true);
+		}
+	}
 #else
 	internal class CustomToolbarSetting : ScriptableObject
 	{

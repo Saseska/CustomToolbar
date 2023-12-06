@@ -36,6 +36,7 @@ namespace UnityToolbarExtender
 				}
 				else
 				{
+					EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
 					EditorSceneManager.OpenScene(SceneManager.GetActiveScene().path);
 				}
 			}

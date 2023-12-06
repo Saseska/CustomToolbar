@@ -1,93 +1,59 @@
 ﻿using System.Collections.Generic;
-using UnityEditor;
+using System.IO;
 using UnityEngine;
 
 namespace UnityToolbarExtender
 {
-#if UNITY_2020_3_OR_NEWER
-	[FilePath("UserSettings/CustomToolbarSetting.asset", FilePathAttribute.Location.PreferencesFolder)]
-	internal class CustomToolbarSetting : ScriptableSingleton<CustomToolbarSetting>
+	internal class CustomToolbarSetting
 	{
-		[SerializeReference] List<BaseToolbarElement> _elements = new();
+		private const string SETTING_PATH = "UserSettings/Plugins/CustomToolbarSetting.json";
 
-		internal List<BaseToolbarElement> elements => _elements;
+		private static CustomToolbarSetting _setting;
 
-		internal static SerializedObject GetSerializedSetting()
+		public static CustomToolbarSetting Settings
 		{
-			return new SerializedObject(instance);
-		}
+			get
+			{
+				if (_setting == null)
+				{
+					_setting = LoadOrCreateSetting();
+				}
 
-		internal void Save()
-		{
-			Save(true);
+				return _setting;
+			}
 		}
-	}
-#else
-	internal class CustomToolbarSetting : ScriptableObject
-	{
-		const string SETTING_PATH = "Assets/Editor/Setting/CustomToolbarSetting.asset";
 
 		[SerializeReference] internal List<BaseToolbarElement> elements = new List<BaseToolbarElement>();
 
-		internal static CustomToolbarSetting GetOrCreateSetting()
+
+		private static CustomToolbarSetting LoadOrCreateSetting()
 		{
-			var setting = AssetDatabase.LoadAssetAtPath<CustomToolbarSetting>(SETTING_PATH);
-			if (setting == null)
+			if (File.Exists(SETTING_PATH))
 			{
-				setting = ScriptableObject.CreateInstance<CustomToolbarSetting>();
-				//TODO: default setup in another ScriptableObject
-				setting.elements = new List<BaseToolbarElement>() {
-					new ToolbarEnterPlayMode(),
-					new ToolbarSceneSelection(),
-					new ToolbarSpace(),
-
-					new ToolbarSavingPrefs(),
-					new ToolbarClearPrefs(),
-					new ToolbarSpace(),
-
-					new ToolbarReloadScene(),
-					new ToolbarStartFromFirstScene(),
-					new ToolbarSpace(),
-
-					new ToolbarSides(),
-
-					new ToolbarTimeslider(),
-					new ToolbarFPSSlider(),
-					new ToolbarSpace(),
-
-					new ToolbarRecompile(),
-					new ToolbarReserializeSelected(),
-					new ToolbarReserializeAll(),
-				};
-
-				if (!Directory.Exists("Assets/Editor"))
-				{
-					AssetDatabase.CreateFolder("Assets", "Editor");
-					AssetDatabase.SaveAssets();
-					
-					AssetDatabase.CreateFolder("Assets/Editor", "Setting");
-					AssetDatabase.SaveAssets();
-				}
-				else
-				{
-					if (!Directory.Exists("Assets/Editor/Setting"))
-					{
-						AssetDatabase.CreateFolder("Assets/Editor", "Setting");
-						AssetDatabase.SaveAssets();
-					}
-				}
-
-				AssetDatabase.CreateAsset(setting, SETTING_PATH);
-				AssetDatabase.SaveAssets();
+				return JsonUtility.FromJson<CustomToolbarSetting>(File.ReadAllText(SETTING_PATH));
 			}
+
+			var setting = new CustomToolbarSetting
+			{
+				elements = new List<BaseToolbarElement>() { }
+			};
+
+			if (!Directory.Exists("UserSettings/Plugins"))
+			{
+				Directory.CreateDirectory("UserSettings/Plugins");
+			}
+
+			setting.Save();
 
 			return setting;
 		}
 
-		internal static SerializedObject GetSerializedSetting()
+		internal void Save()
 		{
-			return new SerializedObject(GetOrCreateSetting());
+			StreamWriter streamWriter = File.CreateText(SETTING_PATH);
+			streamWriter.WriteLine(JsonUtility.ToJson(this));
+			streamWriter.Flush();
+			streamWriter.Close();
 		}
 	}
-#endif
 }

@@ -16,26 +16,25 @@ namespace UnityToolbarExtender
 		public override string NameInList   => "[Dropdown] Scene selection";
 		public override int    SortingGroup => 2;
 
-		[SerializeField] bool showSceneFolder = true;
+		[SerializeField] private bool showSceneFolder = true;
 
-		SceneData[] scenesPopupDisplay;
-		string[]    scenesPath;
-		string[]    scenesBuildPath;
-		int         selectedSceneIndex;
+		private SceneData[] scenesPopupDisplay;
+		private string[]    scenesPath;
+		private string[]    scenesBuildPath;
+		private int         selectedSceneIndex;
 
-		List<SceneData> toDisplay = new List<SceneData>();
-		string[]        sceneGuids;
-		Scene           activeScene;
-		int             usedIds;
-		string          name;
-		GUIContent      content;
-		bool            isPlaceSeparator;
+		private List<SceneData> toDisplay = new List<SceneData>();
+		private string[]        sceneGuids;
+		private Scene           activeScene;
+		private string          name;
+		private GUIContent      content;
+		private bool            isPlaceSeparator;
 
 		public override void Init()
 		{
 			RefreshScenesList();
-			EditorSceneManager.sceneOpened -= HandleSceneOpened;
-			EditorSceneManager.sceneOpened += HandleSceneOpened;
+			EditorSceneManager.activeSceneChangedInEditMode -= HandleSceneOpened;
+			EditorSceneManager.activeSceneChangedInEditMode += HandleSceneOpened;
 		}
 
 		protected override void OnDrawInList(Rect position)
@@ -73,7 +72,7 @@ namespace UnityToolbarExtender
 
 		}
 
-		void RefreshScenesList()
+		private void RefreshScenesList()
 		{
 			InitScenesData();
 
@@ -114,16 +113,21 @@ namespace UnityToolbarExtender
 				AddScene(scenesPath[i], "Other");
 			}
 
+			selectedSceneIndex = toDisplay.FindIndex(item => item.path == activeScene.path);
 			scenesPopupDisplay = toDisplay.ToArray();
 		}
 
-		void AddScene(string path, string prefix = null, string overrideName = null)
+		private void AddScene(string path, string prefix = null, string overrideName = null)
 		{
 			if (!path.Contains(".unity"))
+			{
 				path += ".unity";
+			}
 
 			if (toDisplay.Find(data => path == data.path) != null)
+			{
 				return;
+			}
 
 			if (!string.IsNullOrEmpty(overrideName))
 			{
@@ -143,26 +147,28 @@ namespace UnityToolbarExtender
 			}
 
 			if (!string.IsNullOrEmpty(prefix))
+			{
 				name = $"{prefix}/{name}";
+			}
 
 			if (scenesBuildPath.Contains(path))
+			{
 				content = new GUIContent(name, EditorGUIUtility.Load("BuildSettings.Editor.Small") as Texture,
 					"Open scene");
+			}
 			else
+			{
 				content = new GUIContent(name, "Open scene");
+			}
 
 			toDisplay.Add(new SceneData()
 			{
 				path = path,
 				popupDisplay = content,
 			});
-
-			if (selectedSceneIndex == -1 && GetSceneName(path) == activeScene.name)
-				selectedSceneIndex = usedIds;
-			++usedIds;
 		}
 
-		void PlaceSeperatorIfNeeded()
+		private void PlaceSeperatorIfNeeded()
 		{
 			if (!isPlaceSeparator)
 			{
@@ -171,28 +177,27 @@ namespace UnityToolbarExtender
 			}
 		}
 
-		void PlaceSeperator()
+		private void PlaceSeperator()
 		{
 			toDisplay.Add(new SceneData()
 			{
 				path = "\0",
 				popupDisplay = new GUIContent("\0"),
 			});
-			++usedIds;
 		}
 
-		void HandleSceneOpened(Scene scene, OpenSceneMode mode)
+		private void HandleSceneOpened(Scene current, Scene next)
 		{
 			RefreshScenesList();
 		}
 
-		string GetSceneName(string path)
+		private string GetSceneName(string path)
 		{
 			path = path.Replace(".unity", "");
 			return Path.GetFileName(path);
 		}
 
-		void InitScenesData()
+		private void InitScenesData()
 		{
 			toDisplay.Clear();
 			selectedSceneIndex = -1;
@@ -204,10 +209,9 @@ namespace UnityToolbarExtender
 				scenesPath[i] = AssetDatabase.GUIDToAssetPath(sceneGuids[i]);
 
 			activeScene = SceneManager.GetActiveScene();
-			usedIds = 0;
 		}
 
-		class SceneData
+		private class SceneData
 		{
 			public string     path;
 			public GUIContent popupDisplay;
